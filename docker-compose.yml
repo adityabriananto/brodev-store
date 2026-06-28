@@ -1,0 +1,74 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: brodev-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - brodev
+
+  web:
+    image: nginx:alpine
+    container_name: brodev-web
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d
+    networks:
+      - brodev
+
+  db:
+    image: postgres:15-alpine
+    container_name: brodev-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-brodev_store}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - brodev
+
+  node:
+    image: node:20-alpine
+    container_name: brodev-node
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    ports:
+      - "5173:5173"
+    command: npm run dev -- --host
+    networks:
+      - brodev
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: brodev-queue
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    command: php artisan queue:work --verbose --tries=3 --timeout=90
+    depends_on:
+      - db
+    networks:
+      - brodev
+
+volumes:
+  db-data:
+
+networks:
+  brodev:
+    driver: bridge
