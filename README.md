@@ -1,43 +1,46 @@
 # Brodev - Online Store
 
-Aplikasi E-Commerce modern yang dibangun menggunakan **Laravel (Backend)** + **Vue.js 3 (Frontend)** melalui **Inertia.js** dan diatur menggunakan **Docker** untuk kemudahan deployment mandiri.
+A modern E-Commerce application built using **Laravel (Backend)** + **Vue.js 3 (Frontend)** via **Inertia.js** and containerized with **Docker** for quick and seamless deployment.
 
-Aplikasi ini dirancang dengan antarmuka yang bersih, minimalis, dan mendukung **Light/Dark Mode** serta dilengkapi dengan hak cipta dinamis berbasis tahun ini (**2026**).
-
----
-
-## Fitur Utama
-
-1.  **Sistem Multi-User & Multi-Role**:
-    *   **Buyer (Pembeli)**: Registrasi, login, jelajah katalog produk, cari produk, kelola keranjang belanja, checkout transaksi dengan penanganan stok aman, dan riwayat pesanan (COD & Transfer).
-    *   **Seller (Penjual)**: Dashboard statistik penjualan, CRUD produk mandiri dengan upload foto produk, dan memperbarui status paket pesanan masuk (`pending`, `processed`, `shipped`, `delivered`).
-    *   **Superadmin**: Akun khusus yang dapat bertindak sebagai Buyer maupun Seller sekaligus hanya dengan sekali login. Disediakan tombol toggle mode (Buyer Mode / Seller Mode) pada navigasi atas.
-2.  **Theme System (Light/Dark Mode)**: Transisi mulus antara mode terang dan gelap yang persisten menggunakan LocalStorage.
-3.  **Dockerized Setup**: Semua service (PHP-FPM, Nginx, PostgreSQL, Node/Vite) terkonfigurasi di Docker Compose untuk dijalankan secara instan.
-4.  **Zero-Downtime Deployment**: Dilengkapi dengan konfigurasi **Capistrano** untuk proses deployment otomatis tanpa gangguan layanan.
+The application features a clean, minimalist UI, supports a native **Light/Dark Mode**, and includes dynamic copyright rendering for the year **2026**.
 
 ---
 
-## Spesifikasi Stack
+## Key Features
 
-*   **Backend**: Laravel 11 (PHP 8.3)
-*   **Frontend**: Vue.js 3 (Inertia.js + Vite)
-*   **Database**: PostgreSQL 15 (Direkomendasikan demi integritas transaksi & optimalisasi data atribut JSONB) atau MySQL
-*   **Aset & Styling**: Custom Vanilla CSS (Outfit Google Font, Responsive Layout, Glassmorphism, Micro-animations)
-*   **Deployment**: Capistrano 3
+1. **Multi-User & Multi-Role System**:
+    * **Buyer**: Register, log in, browse the product catalog, search products (name-only matching), manage the shopping cart, checkout securely with stock validation, upload transfer payment proof, and track order histories.
+    * **Seller**: Analytics dashboard, product management (CRUD) with photo upload, and manage incoming order statuses (`pending`, `processed`, `shipped`, `delivered`) along with shipping tracking numbers.
+    * **Superadmin**: A unified account to simulate both Buyer and Seller roles in one single session using a dashboard toggle (Buyer Mode / Seller Mode) on the top navigation bar.
+2. **Smooth Page Transitions & Top Loading Bar**: Integrates Inertia routing event hooks with Vue transitions (150ms-180ms) and a loading bar for a lightweight SPA-like user experience.
+3. **Status History Timeline**: Comprehensive log of order status changes, showing who changed the status, when it occurred, and any related transaction notes.
+4. **Bank Transfer Payment Verification**: Supports automatic order verification for bank transfers: orders start as `unpaid` (disabling seller updates), buyer uploads proof, status changes to `pending` and displays payment proof viewing link on the seller panel.
+5. **Dockerized Environment**: Full services stack (PHP-FPM, Nginx, PostgreSQL, Node/Vite, Queue Worker) configured via Docker Compose.
+6. **Zero-Downtime Deployment**: Configured with **Capistrano** for automated release management and atomic deployment switching.
 
 ---
 
-## Cara Menjalankan Aplikasi Menggunakan Docker
+## Tech Stack
 
-Pastikan Anda telah menginstal **Docker** dan **Docker Compose** di komputer Anda.
+* **Backend**: Laravel 11 (PHP 8.3)
+* **Frontend**: Vue.js 3 (Inertia.js 2.0 + Vite)
+* **Database**: PostgreSQL 15 (Docker default) / SQLite (Local testing)
+* **Queue System**: Database queue connection with worker container (`brodev-queue`) for async processes (e.g., transactional emails).
+* **Styling**: Custom Vanilla CSS (Outfit Font, responsive layouts, glassmorphism, micro-animations)
+* **Deployment**: Capistrano 3
 
-### 1. Persiapan Environment
-Salin file konfigurasi `.env`:
+---
+
+## Running Locally with Docker
+
+Make sure you have **Docker** and **Docker Compose** installed on your machine.
+
+### 1. Environment Setup
+Copy the environment template:
 ```bash
 cp .env.example .env
 ```
-Secara default, file `.env` telah disesuaikan untuk konfigurasi database di Docker:
+By default, the `.env` file is preset for the Docker database setup:
 ```env
 DB_CONNECTION=pgsql
 DB_HOST=db
@@ -47,86 +50,86 @@ DB_USERNAME=postgres
 DB_PASSWORD=secret
 ```
 
-### 2. Jalankan Container Docker
-Jalankan perintah berikut untuk mengunduh image, membangun container, dan menjalankannya di latar belakang:
+### 2. Launch Docker Containers
+Run the following command to download images, build, and run the containers in the background:
 ```bash
 docker-compose up -d --build
 ```
-Perintah ini akan menyalakan empat service:
-*   `brodev-app`: Container PHP 8.3 FPM.
-*   `brodev-web`: Container Nginx sebagai web server (Port: `http://localhost:8000`).
-*   `brodev-db`: Database PostgreSQL 15 (Port: `5432`).
-*   `brodev-node`: Container Node.js 20 untuk menjalankan compiler Vite dev server (Port: `5173`).
+This launches five services:
+* `brodev-app`: PHP 8.3 FPM container.
+* `brodev-queue`: Dedicated PHP background queue worker container.
+* `brodev-web`: Nginx web server container (mapped to `http://localhost:8000`).
+* `brodev-db`: PostgreSQL 15 database container (mapped to port `5432`).
+* `brodev-node`: Node.js 20 container running the Vite dev server (mapped to port `5173`).
 
-### 3. Jalankan Dependency & Migrasi di Dalam Container
-Jalankan perintah-perintah berikut untuk menginstal composer dependency, migrasi database, dan seed data awal:
-
+### 3. Initialize App and Run Migrations
+Run these commands inside the app container to install dependencies, generate key, and seed dummy data:
 ```bash
-# Masuk ke container app
+# Install Composer dependencies
 docker-compose exec app composer install
 
 # Generate application key
 docker-compose exec app php artisan key:generate
 
-# Jalankan migrasi database beserta data seed awal
+# Run fresh database migrations and seed default test data
 docker-compose exec app php artisan migrate:fresh --seed
 ```
 
-### 4. Buka Aplikasi di Browser
-Akses aplikasi melalui alamat:
-*   **Aplikasi Toko Online**: `http://localhost:8000`
-*   **Vite Hot Reload Server**: `http://localhost:5173`
+### 4. Access the Application
+Open your browser and navigate to:
+* **Online Store Application**: `http://localhost:8000`
+* **Vite Hot Reload Server**: `http://localhost:5173`
 
 ---
 
-## Akun Pengujian Default (Seeded)
+## Default Test Credentials (Seeded)
 
-Database telah dilengkapi dengan akun pengujian berikut untuk mempermudah demonstrasi:
+The database includes the following default test accounts for quick demonstration:
 
-1.  **Superadmin**:
-    *   **Email**: `admin@brodev.com`
-    *   **Password**: `password`
-    *   *Fitur*: Dapat berganti peran sebagai Buyer/Seller lewat navigasi atas secara instan.
-2.  **Seller (Penjual)**:
-    *   **Email**: `seller@brodev.com`
-    *   **Password**: `password`
-    *   *Fitur*: Mengelola produk dan memproses pengiriman pesanan.
-3.  **Buyer (Pembeli)**:
-    *   **Email**: `buyer@brodev.com`
-    *   **Password**: `password`
-    *   *Fitur*: Menambahkan barang ke keranjang dan checkout.
+1. **Superadmin**:
+    * **Email**: `admin@brodev.com`
+    * **Password**: `password`
+    * *Access*: Can toggle between Buyer and Seller panels in a single login session.
+2. **Seller**:
+    * **Email**: `seller@brodev.com`
+    * **Password**: `password`
+    * *Access*: Manage products catalog and fulfill orders.
+3. **Buyer**:
+    * **Email**: `buyer@brodev.com`
+    * **Password**: `password`
+    * *Access*: Add items to cart, checkout, upload transfer proof, and track orders.
 
 ---
 
-## Deployment Menggunakan Capistrano (Zero-Downtime)
+## Production Deployment with Capistrano
 
-Aplikasi dilengkapi dengan konfigurasi Capistrano untuk deployment otomatis.
+Capistrano manages zero-downtime atomic deployments.
 
-### 1. Struktur Folder di Server Target
-Capistrano akan mengatur struktur folder di server tujuan sebagai berikut:
-*   `/var/www/brodev-store/releases/` (Folder rilis rilis lama & baru)
-*   `/var/www/brodev-store/shared/` (Berisi `.env` dan folder `storage` yang persisten)
-*   `/var/www/brodev-store/current` (Symlink dinamis yang menunjuk ke rilis terbaru)
+### 1. Folder Structure on Target Server
+Capistrano automatically creates and manages:
+* `/var/www/brodev-store/releases/` (Old and new deployment builds)
+* `/var/www/brodev-store/shared/` (Persistent `.env` and `storage` directories)
+* `/var/www/brodev-store/current` (Dynamic symbolic link pointing to the latest release)
 
-### 2. Cara Menjalankan Deploy
-1.  Sesuaikan alamat server target Anda di file `config/deploy/production.rb` atau `config/deploy/staging.rb`.
-2.  Pasang SSH Key publik Anda di server target.
-3.  Jalankan perintah deploy dari mesin lokal Anda:
+### 2. Triggering Deployments
+1. Configure your target server details in `config/deploy/production.rb` or `config/deploy/staging.rb`.
+2. Add your SSH public key to the target server's authorized keys list.
+3. Run the deploy commands from your local machine:
     ```bash
     # Install Capistrano gems locally (requires Ruby)
     bundle install
 
-    # Jalankan simulasi deploy (staging / production)
+    # Run deployment check
     bundle exec cap production deploy:check
 
-    # Jalankan deploy penuh (mengklon git, install composer, build assets, migrate, switch symlink)
+    # Execute full zero-downtime deployment
     bundle exec cap production deploy
     ```
 
-Proses peralihan symlink `current` berlangsung secara instan (atomic), dan PHP-FPM akan dimuat ulang secara otomatis untuk membersihkan OPcache, menjamin deployment tanpa downtime.
+Capistrano automatically pulls from Git, installs composer packages, builds Vite assets, runs migrations, switches the `current` symlink, and reloads PHP-FPM for OPCache invalidation.
 
 ---
 
-## Hak Cipta
-Hak cipta halaman toko online ini dilindungi berdasarkan tahun 2026:
+## Copyright
+The copyright of this application is secured for the year 2026:
 `© 2026 Brodev - Online Store. All rights reserved.`
