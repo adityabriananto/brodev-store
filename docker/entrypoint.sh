@@ -48,6 +48,12 @@ if [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then
     chown www-data:www-data "$DB_PATH"
 fi
 
+# If custom command arguments are passed, execute them instead of supervisor
+if [ $# -gt 0 ]; then
+    echo "Custom command detected. Executing: $@"
+    exec "$@"
+fi
+
 # Run caching optimizations for production
 echo "Caching configuration and routes..."
 php artisan config:cache
