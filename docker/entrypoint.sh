@@ -13,6 +13,12 @@ mkdir -p /var/www/storage/payment_proofs
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
+# Recreate storage symlink if missing
+if [ ! -L "/var/www/public/storage" ]; then
+    echo "Creating storage symlink..."
+    php artisan storage:link
+fi
+
 # SQLite Persistent Database Handling
 # If DB_CONNECTION is sqlite, ensure the file exists and has correct ownership
 if [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then

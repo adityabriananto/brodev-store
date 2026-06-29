@@ -4,3 +4,9 @@
 .env
 .phpunit.result.cache
 npm-debug.log
+/public/storage
+/database/*.sqlite
+/database/*.sqlite-journal
+/database/*.sqlite-shm
+/database/*.sqlite-wal
+
