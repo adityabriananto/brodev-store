@@ -17,6 +17,7 @@ primary_region = "sin"
   destination = "/data"
 
 [env]
+  APP_URL = "https://brodev-store.fly.dev"
   APP_ENV = "production"
   APP_DEBUG = "false"
   DB_CONNECTION = "sqlite"
