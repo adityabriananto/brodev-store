@@ -1,0 +1,51 @@
+# fly.toml configuration file for brodev-store
+
+app = "brodev-store"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[deploy]
+  release_command = "php artisan migrate --force"
+
+[processes]
+  app = "supervisord -c /etc/supervisor/supervisord.conf"
+
+[[mounts]]
+  source = "brodev_data"
+  destination = "/data"
+
+[env]
+  APP_ENV = "production"
+  APP_DEBUG = "false"
+  DB_CONNECTION = "sqlite"
+  DB_DATABASE = "/data/database.sqlite"
+  SESSION_DRIVER = "database"
+  CACHE_STORE = "database"
+  QUEUE_CONNECTION = "database"
+
+[[services]]
+  http_service_port = 8080
+  internal_port = 8080
+  processes = ["app"]
+
+  [[services.ports]]
+    force_https = true
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.concurrency]]
+    hard_limit = 25
+    soft_limit = 20
+    type = "connections"
+
+  [[services.tcp_checks]]
+    grace_period = "15s"
+    interval = "15s"
+    restart_limit = 0
+    timeout = "2s"
