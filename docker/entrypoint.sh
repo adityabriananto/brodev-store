@@ -20,29 +20,27 @@ if [ ! -L "/var/www/public/storage" ]; then
 fi
 
 # SQLite Persistent Database Handling
-# If DB_CONNECTION is sqlite, ensure the file exists and has correct ownership
 if [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then
     DB_PATH=${DB_DATABASE:-/data/database.sqlite}
     echo "SQLite database detected. Checking path: $DB_PATH"
     
     # Ensure directory exists
     DB_DIR=$(dirname "$DB_PATH")
-    if [ ! -d "$DB_DIR" ]; then
-        echo "Creating database directory: $DB_DIR"
-        mkdir -p "$DB_DIR"
-        chown -R www-data:www-data "$DB_DIR"
-        chmod 775 "$DB_DIR"
-    fi
+    mkdir -p "$DB_DIR"
+    chown -R www-data:www-data "$DB_DIR"
+    chmod 775 "$DB_DIR"
 
     # Ensure database file exists
     if [ ! -f "$DB_PATH" ]; then
         echo "Database file not found. Creating $DB_PATH..."
         touch "$DB_PATH"
-        chown www-data:www-data "$DB_PATH"
-        chmod 664 "$DB_PATH"
     fi
     
-    # Run migrations during startup (since SQLite volume isn't mounted during fly deploy release_command)
+    # Unconditionally apply ownership and permissions to support migrations run by root
+    chown www-data:www-data "$DB_PATH"
+    chmod 664 "$DB_PATH"
+    
+    # Run migrations during startup
     echo "Running database migrations..."
     php artisan migrate --force --no-interaction
     chown www-data:www-data "$DB_PATH"
