@@ -559,3 +559,42 @@ a {
     gap: 1rem;
     margin-top: 1.5rem;
 }
+
+/* Responsive Dashboard & Sidebar Layout */
+@media (max-width: 1024px) {
+    .dashboard-wrapper {
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+    .sidebar {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 0.75rem;
+    }
+    .sidebar-title {
+        padding-left: 0.25rem;
+        margin-bottom: 0.5rem;
+    }
+    .sidebar-menu {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        scrollbar-width: none; /* Hide scrollbar for clean UI on Firefox */
+        -webkit-overflow-scrolling: touch;
+    }
+    .sidebar-menu::-webkit-scrollbar {
+        display: none; /* Hide scrollbar for Chrome/Safari */
+    }
+    .sidebar-item {
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+    .sidebar-item a {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    .main-content {
+        width: 100%;
+    }
+}

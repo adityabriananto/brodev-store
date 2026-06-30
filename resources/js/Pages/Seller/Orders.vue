@@ -444,4 +444,44 @@ const formatRupiah = (value) => {
     width: 100%;
   }
 }
+
+@media (max-width: 600px) {
+  /* Filter form stacking */
+  .filter-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .filter-group {
+    width: 100%;
+    min-width: unset;
+  }
+  .filter-actions {
+    margin-top: 0.5rem;
+    justify-content: flex-end;
+  }
+  .filter-actions button {
+    flex: 1;
+    text-align: center;
+  }
+  
+  /* Order card header stacking */
+  .seller-order-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  .order-total-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 0.75rem;
+    margin-top: 0.25rem;
+  }
+  .status-select {
+    min-width: 150px;
+    flex-shrink: 0;
+  }
+}
 </style>
