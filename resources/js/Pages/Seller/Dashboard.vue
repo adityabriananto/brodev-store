@@ -78,6 +78,9 @@
         <!-- Bank Account Settings Card -->
         <div class="card" style="padding: 1.5rem; margin-top: 2rem;">
           <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Pengaturan Rekening Bank</h3>
+          <p v-if="$page.props.auth.user.role === 'superadmin'" style="color: var(--color-primary); font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem;">
+            ℹ️ Sebagai Super Admin, rekening ini akan digunakan sebagai rekening default toko jika ada penjual (seller) lain yang belum mengatur rekening mereka.
+          </p>
           <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">
             Lengkapi detail rekening bank di bawah ini agar pembeli dapat melakukan pembayaran transfer bank secara langsung ke rekening Anda.
           </p>

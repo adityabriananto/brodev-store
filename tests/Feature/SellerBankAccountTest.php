@@ -190,4 +190,42 @@ class SellerBankAccountTest extends TestCase
             ->where('orders.0.items.0.product.seller.bank_account_holder', 'John Doe')
         );
     }
+
+    public function test_fallback_to_superadmin_bank_details(): void
+    {
+        // Create a superadmin with bank details
+        $superadmin = User::factory()->create([
+            'role' => 'superadmin',
+            'bank_name' => 'Bank Central Asia',
+            'bank_account_number' => '8888888888',
+            'bank_account_holder' => 'Super Admin Brodev',
+        ]);
+
+        // Create a seller without bank details
+        $sellerWithoutBank = User::factory()->create([
+            'role' => 'seller',
+            'bank_name' => null,
+            'bank_account_number' => null,
+            'bank_account_holder' => null,
+        ]);
+
+        // Assert that the seller's payment accessors return the superadmin's bank details
+        $this->assertEquals('Bank Central Asia', $sellerWithoutBank->payment_bank_name);
+        $this->assertEquals('8888888888', $sellerWithoutBank->payment_bank_account_number);
+        $this->assertEquals('Super Admin Brodev', $sellerWithoutBank->payment_bank_account_holder);
+
+        // Create another seller WITH bank details
+        $sellerWithBank = User::factory()->create([
+            'role' => 'seller',
+            'bank_name' => 'Bank Mandiri',
+            'bank_account_number' => '1234567890',
+            'bank_account_holder' => 'John Doe',
+        ]);
+
+        // Assert that the seller's own bank details are returned and not the superadmin's
+        $this->assertEquals('Bank Mandiri', $sellerWithBank->payment_bank_name);
+        $this->assertEquals('1234567890', $sellerWithBank->payment_bank_account_number);
+        $this->assertEquals('John Doe', $sellerWithBank->payment_bank_account_holder);
+    }
 }
+

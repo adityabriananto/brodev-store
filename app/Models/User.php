@@ -17,6 +17,12 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $appends = [
+        'payment_bank_name',
+        'payment_bank_account_number',
+        'payment_bank_account_holder',
+    ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -59,4 +65,32 @@ class User extends Authenticatable
     {
         return $this->role === 'superadmin';
     }
+
+    public function getPaymentBankNameAttribute()
+    {
+        if (!empty($this->bank_name)) {
+            return $this->bank_name;
+        }
+        // Fallback to first superadmin bank name
+        return self::where('role', 'superadmin')->whereNotNull('bank_name')->value('bank_name');
+    }
+
+    public function getPaymentBankAccountNumberAttribute()
+    {
+        if (!empty($this->bank_account_number)) {
+            return $this->bank_account_number;
+        }
+        // Fallback to first superadmin bank account number
+        return self::where('role', 'superadmin')->whereNotNull('bank_account_number')->value('bank_account_number');
+    }
+
+    public function getPaymentBankAccountHolderAttribute()
+    {
+        if (!empty($this->bank_account_holder)) {
+            return $this->bank_account_holder;
+        }
+        // Fallback to first superadmin bank account holder
+        return self::where('role', 'superadmin')->whereNotNull('bank_account_holder')->value('bank_account_holder');
+    }
 }
+

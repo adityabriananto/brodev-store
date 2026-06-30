@@ -136,10 +136,10 @@ const sellersBreakdown = computed(() => {
       breakdown[sellerId] = {
         sellerId: sellerId,
         sellerName: seller.name,
-        bankName: seller.bank_name || '',
-        bankAccountNumber: seller.bank_account_number || '',
-        bankAccountHolder: seller.bank_account_holder || '',
-        hasBankAccount: !!(seller.bank_name && seller.bank_account_number && seller.bank_account_holder),
+        bankName: seller.payment_bank_name || '',
+        bankAccountNumber: seller.payment_bank_account_number || '',
+        bankAccountHolder: seller.payment_bank_account_holder || '',
+        hasBankAccount: !!(seller.payment_bank_name && seller.payment_bank_account_number && seller.payment_bank_account_holder),
         subtotal: 0,
       };
     }
