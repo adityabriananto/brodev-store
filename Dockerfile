@@ -53,6 +53,8 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 RUN chmod +x /usr/local/bin/entrypoint.sh && \
     mkdir -p /var/log/supervisor /var/run/supervisor /run/nginx && \
     chown -R www-data:www-data /var/www
+# Set PHP upload limits
+RUN echo "upload_max_filesize = 10M\npost_max_size = 10M" > /usr/local/etc/php/conf.d/uploads.ini
 
 EXPOSE 8080
 

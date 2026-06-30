@@ -141,7 +141,7 @@ class OrderController extends Controller
         }
 
         $request->validate([
-            'payment_proof' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'payment_proof' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:10240'],
         ]);
 
         if ($request->hasFile('payment_proof')) {
