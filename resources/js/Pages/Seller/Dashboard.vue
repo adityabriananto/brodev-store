@@ -74,6 +74,72 @@
             <p style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">Belum ada pesanan masuk.</p>
           </div>
         </div>
+
+        <!-- Bank Account Settings Card -->
+        <div class="card" style="padding: 1.5rem; margin-top: 2rem;">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Pengaturan Rekening Bank</h3>
+          <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">
+            Lengkapi detail rekening bank di bawah ini agar pembeli dapat melakukan pembayaran transfer bank secara langsung ke rekening Anda.
+          </p>
+
+          <form @submit.prevent="submitBankDetails">
+            <div class="grid grid-cols-3" style="gap: 1.5rem;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="bank_name">Nama Bank</label>
+                <input 
+                  type="text" 
+                  id="bank_name" 
+                  class="form-control" 
+                  v-model="form.bank_name" 
+                  placeholder="Contoh: BCA, Mandiri, BNI"
+                  required
+                />
+                <span class="error-msg" v-if="form.errors.bank_name">{{ form.errors.bank_name }}</span>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="bank_account_number">Nomor Rekening</label>
+                <input 
+                  type="text" 
+                  id="bank_account_number" 
+                  class="form-control" 
+                  v-model="form.bank_account_number" 
+                  placeholder="Masukkan nomor rekening"
+                  required
+                />
+                <span class="error-msg" v-if="form.errors.bank_account_number">{{ form.errors.bank_account_number }}</span>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="bank_account_holder">Nama Pemilik Rekening</label>
+                <input 
+                  type="text" 
+                  id="bank_account_holder" 
+                  class="form-control" 
+                  v-model="form.bank_account_holder" 
+                  placeholder="Nama pemilik rekening"
+                  required
+                />
+                <span class="error-msg" v-if="form.errors.bank_account_holder">{{ form.errors.bank_account_holder }}</span>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1.5rem;">
+              <span v-if="form.recentlySuccessful" style="color: var(--color-success); font-size: 0.875rem; font-weight: 600;">
+                ✓ Rekening bank berhasil disimpan.
+              </span>
+              <button 
+                type="submit" 
+                class="btn btn-primary" 
+                :disabled="form.processing"
+                style="padding: 0.5rem 1.5rem;"
+              >
+                {{ form.processing ? 'Menyimpan...' : 'Simpan Rekening' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
       </div>
     </div>
   </AppLayout>
@@ -81,12 +147,25 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, useForm } from '@inertiajs/vue3';
 
-defineProps({
+const props = defineProps({
   stats: Object,
-  recentOrders: Array
+  recentOrders: Array,
+  seller: Object
 });
+
+const form = useForm({
+  bank_name: props.seller?.bank_name || '',
+  bank_account_number: props.seller?.bank_account_number || '',
+  bank_account_holder: props.seller?.bank_account_holder || '',
+});
+
+const submitBankDetails = () => {
+  form.post(route('seller.bank-account.update'), {
+    preserveScroll: true,
+  });
+};
 
 // Javascript route helper
 const route = (name) => {
@@ -94,6 +173,7 @@ const route = (name) => {
     'seller.dashboard': '/seller/dashboard',
     'seller.products': '/seller/products',
     'seller.orders': '/seller/orders',
+    'seller.bank-account.update': '/seller/bank-account',
   };
   return routes[name] || '#';
 };

@@ -42,6 +42,33 @@
               <span class="error-msg" v-if="form.errors.payment_method">{{ form.errors.payment_method }}</span>
             </div>
 
+            <!-- Bank Transfer Details Info Box -->
+            <div v-if="form.payment_method === 'Transfer Bank'" style="margin-top: 1.5rem; margin-bottom: 1.5rem; padding: 1.25rem; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 0.5rem;">
+              <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>🏦 Detail Transfer Bank</span>
+              </h4>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
+                Silakan transfer sesuai detail rekening penjual berikut sebelum membuat pesanan:
+              </p>
+
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div v-for="(sellerGroup, idx) in sellersBreakdown" :key="sellerGroup.sellerId" :style="idx !== sellersBreakdown.length - 1 ? { borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' } : {}">
+                  <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-primary);">
+                    Toko: {{ sellerGroup.sellerName }}
+                  </div>
+                  <div v-if="sellerGroup.hasBankAccount" style="font-size: 0.85rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.25rem;">
+                    <div>Bank: <strong style="color: var(--text-primary);">{{ sellerGroup.bankName }}</strong></div>
+                    <div>No. Rekening: <strong style="color: var(--text-primary); font-family: monospace;">{{ sellerGroup.bankAccountNumber }}</strong></div>
+                    <div>Atas Nama: <strong style="color: var(--text-primary);">{{ sellerGroup.bankAccountHolder }}</strong></div>
+                    <div>Jumlah Transfer: <strong style="color: var(--color-primary); font-size: 0.95rem;">{{ formatRupiah(sellerGroup.subtotal) }}</strong></div>
+                  </div>
+                  <div v-else style="font-size: 0.85rem; color: var(--color-danger); font-weight: 500;">
+                    ⚠ Penjual ini belum mengatur rekening bank. Hubungi penjual atau admin.
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; margin-top: 1rem;" :disabled="form.processing">
               {{ form.processing ? 'Memproses Pesanan...' : 'Buat Pesanan Sekarang' }}
             </button>
@@ -97,6 +124,28 @@ const totalQuantity = computed(() => {
 
 const totalPrice = computed(() => {
   return props.cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+});
+
+const sellersBreakdown = computed(() => {
+  const breakdown = {};
+  props.cartItems.forEach(item => {
+    const seller = item.product?.seller;
+    if (!seller) return;
+    const sellerId = seller.id;
+    if (!breakdown[sellerId]) {
+      breakdown[sellerId] = {
+        sellerId: sellerId,
+        sellerName: seller.name,
+        bankName: seller.bank_name || '',
+        bankAccountNumber: seller.bank_account_number || '',
+        bankAccountHolder: seller.bank_account_holder || '',
+        hasBankAccount: !!(seller.bank_name && seller.bank_account_number && seller.bank_account_holder),
+        subtotal: 0,
+      };
+    }
+    breakdown[sellerId].subtotal += item.product.price * item.quantity;
+  });
+  return Object.values(breakdown);
 });
 
 const form = useForm({

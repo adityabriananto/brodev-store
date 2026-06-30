@@ -95,26 +95,49 @@
         </div>
 
         <!-- Payment Proof Upload Panel -->
-        <div class="payment-proof-panel" v-if="order.status === 'unpaid'">
-          <div class="proof-info">
-            <h4 class="proof-title">💡 Pembayaran Transfer Bank Belum Selesai</h4>
-            <p class="proof-desc">Silakan lakukan transfer ke rekening resmi kami, lalu unggah bukti transfer di bawah ini agar pesanan Anda dapat dikonfirmasi dan diproses penjual.</p>
-          </div>
-          <form @submit.prevent="submitPaymentProof(order.id)" class="proof-form">
-            <div class="file-input-wrapper">
-              <input 
-                type="file" 
-                :id="'proof-' + order.id" 
-                class="form-control file-input" 
-                accept="image/*"
-                @change="handleFileChange($event, order.id)"
-                required
-              />
+        <div class="payment-proof-panel" v-if="order.status === 'unpaid'" style="flex-direction: column; align-items: stretch; gap: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.25rem;">
+            <div class="proof-info">
+              <h4 class="proof-title">💡 Pembayaran Transfer Bank Belum Selesai</h4>
+              <p class="proof-desc">Silakan lakukan transfer sesuai rekening penjual di bawah ini, lalu unggah bukti transfer agar pesanan Anda dapat dikonfirmasi dan diproses penjual.</p>
             </div>
-            <button type="submit" class="btn btn-primary btn-sm" :disabled="uploadingId === order.id" style="height: auto; padding: 0.5rem 1rem;">
-              {{ uploadingId === order.id ? 'Mengunggah...' : 'Kirim Bukti Pembayaran' }}
-            </button>
-          </form>
+            <form @submit.prevent="submitPaymentProof(order.id)" class="proof-form">
+              <div class="file-input-wrapper">
+                <input 
+                  type="file" 
+                  :id="'proof-' + order.id" 
+                  class="form-control file-input" 
+                  accept="image/*"
+                  @change="handleFileChange($event, order.id)"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm" :disabled="uploadingId === order.id" style="height: auto; padding: 0.5rem 1rem;">
+                {{ uploadingId === order.id ? 'Mengunggah...' : 'Kirim Bukti Pembayaran' }}
+              </button>
+            </form>
+          </div>
+
+          <!-- Bank details list -->
+          <div style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; margin-top: 0.5rem;">
+            <h5 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em;">Detail Rekening Penjual:</h5>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div v-for="(sellerGroup, idx) in getOrderSellersBreakdown(order)" :key="sellerGroup.sellerId" :style="idx !== getOrderSellersBreakdown(order).length - 1 ? { borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' } : {}">
+                <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-primary); margin-bottom: 0.25rem;">
+                  Toko: {{ sellerGroup.sellerName }}
+                </div>
+                <div v-if="sellerGroup.hasBankAccount" style="font-size: 0.82rem; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: 1rem;">
+                  <div>Bank: <strong style="color: var(--text-primary);">{{ sellerGroup.bankName }}</strong></div>
+                  <div>No. Rekening: <strong style="color: var(--text-primary); font-family: monospace;">{{ sellerGroup.bankAccountNumber }}</strong></div>
+                  <div>Atas Nama: <strong style="color: var(--text-primary);">{{ sellerGroup.bankAccountHolder }}</strong></div>
+                  <div>Jumlah Transfer: <strong style="color: var(--color-primary); font-weight: 700;">{{ formatRupiah(sellerGroup.subtotal) }}</strong></div>
+                </div>
+                <div v-else style="font-size: 0.82rem; color: var(--color-danger); font-weight: 500;">
+                  ⚠ Penjual ini belum mengatur rekening bank. Hubungi penjual atau admin.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -234,6 +257,28 @@ const getDotClass = (status) => {
     case 'delivered': return 'dot-success';
     default: return '';
   }
+};
+
+const getOrderSellersBreakdown = (order) => {
+  const breakdown = {};
+  order.items.forEach(item => {
+    const seller = item.product?.seller;
+    if (!seller) return;
+    const sellerId = seller.id;
+    if (!breakdown[sellerId]) {
+      breakdown[sellerId] = {
+        sellerId: sellerId,
+        sellerName: seller.name,
+        bankName: seller.bank_name || '',
+        bankAccountNumber: seller.bank_account_number || '',
+        bankAccountHolder: seller.bank_account_holder || '',
+        hasBankAccount: !!(seller.bank_name && seller.bank_account_number && seller.bank_account_holder),
+        subtotal: 0,
+      };
+    }
+    breakdown[sellerId].subtotal += item.price * item.quantity;
+  });
+  return Object.values(breakdown);
 };</script>
 
 <style scoped>
