@@ -44,5 +44,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/seller/products/{product}', [ProductController::class, 'destroy'])->name('seller.destroy');
         Route::get('/seller/orders', [SellerOrderController::class, 'index'])->name('seller.orders');
         Route::patch('/seller/orders/{order}/status', [SellerOrderController::class, 'updateStatus'])->name('seller.orders.updateStatus');
+        Route::post('/seller/bank-account', [SellerOrderController::class, 'updateBankAccount'])->name('seller.bank-account.update');
     });
 });

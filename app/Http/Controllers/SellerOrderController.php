@@ -53,7 +53,12 @@ class SellerOrderController extends Controller
                 'totalOrders'   => $totalOrders,
                 'totalEarnings' => (float)$totalEarnings,
             ],
-            'recentOrders' => $recentOrders
+            'recentOrders' => $recentOrders,
+            'seller' => [
+                'bank_name' => $user->bank_name,
+                'bank_account_number' => $user->bank_account_number,
+                'bank_account_holder' => $user->bank_account_holder,
+            ]
         ]);
     }
 
@@ -90,7 +95,12 @@ class SellerOrderController extends Controller
 
         return Inertia::render('Seller/Orders', [
             'orders' => $orders,
-            'filters' => $request->only(['search_order_number', 'created_date', 'updated_date'])
+            'filters' => $request->only(['search_order_number', 'created_date', 'updated_date']),
+            'seller' => [
+                'bank_name' => $user->bank_name,
+                'bank_account_number' => $user->bank_account_number,
+                'bank_account_holder' => $user->bank_account_holder,
+            ]
         ]);
     }
 
@@ -147,5 +157,22 @@ class SellerOrderController extends Controller
         ]);
 
         return redirect()->route('seller.orders')->with('success', 'Status pesanan berhasil diperbarui.');
+    }
+
+    public function updateBankAccount(Request $request)
+    {
+        $request->validate([
+            'bank_name' => ['required', 'string', 'max:255'],
+            'bank_account_number' => ['required', 'string', 'max:255'],
+            'bank_account_holder' => ['required', 'string', 'max:255'],
+        ]);
+
+        Auth::user()->update($request->only([
+            'bank_name',
+            'bank_account_number',
+            'bank_account_holder'
+        ]));
+
+        return back()->with('success', 'Rekening bank berhasil diperbarui.');
     }
 }
